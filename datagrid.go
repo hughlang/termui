@@ -79,7 +79,7 @@ func NewDataGrid() *DataGrid {
 	return grid
 }
 
-// Analysis generates and returns an array of []Cell that represent all cells in the DataGrid
+// Analysis generates and returns an array of []Cell that represent all printable cells in the DataGrid
 func (grid *DataGrid) Analysis() [][]Cell {
 	var rowCells [][]Cell
 
@@ -100,7 +100,7 @@ func (grid *DataGrid) Buffer() Buffer {
 	buffer := grid.Block.Buffer()
 	rowCells := grid.Analysis()
 	pointerX := grid.innerArea.Min.X + 1
-	pointerY := grid.innerArea.Min.Y
+	pointerY := grid.Y
 	startPointerX := grid.innerArea.Min.X
 
 	if grid.ShowHeader {
@@ -116,10 +116,10 @@ func (grid *DataGrid) Buffer() Buffer {
 	// For each []string object with rowIndex y
 	for y, row := range grid.Rows {
 		// For each string in row array
+		if grid.ShowHeader {
+			pointerY = y + grid.Y + 1
+		}
 		for x := range row {
-			if grid.ShowHeader {
-				pointerY = y + grid.Y + 1
-			}
 			grid.positionText(grid.Rows[y][x], x, &pointerX, &startPointerX)
 			bgWidth := grid.DataColumns[x].Width
 			if grid.ShowBorder {
@@ -127,13 +127,13 @@ func (grid *DataGrid) Buffer() Buffer {
 			}
 			bgCells := DefaultTxBuilder.Build(strings.Repeat(" ", bgWidth), grid.BgColor, grid.BgColor)
 
-			cells := rowCells[y*len(row)+x]
+			printCells := rowCells[y*len(row)+x]
 			for i, bgCell := range bgCells {
 				buffer.Set(startPointerX+i, pointerY, bgCell)
 			}
 
 			coordinateX := pointerX
-			for _, printer := range cells {
+			for _, printer := range printCells {
 				buffer.Set(coordinateX, pointerY, printer)
 				coordinateX += printer.Width()
 			}
